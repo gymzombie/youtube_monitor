@@ -1,5 +1,7 @@
 #Summary
-This is a 
+This is a application to monitor YouTube activity related to a number of user defined queries. The backend queries the YouTube API at regualr intervals and stores data related to the content (video meta-data but _not_ the videos themselves, along with public user comments and user information). The front end uses Python-Flask and PyMongo to interface with this datand D3 and jQuery to serve it in a web interface.
+
+Requires a YouTube API key to be stored in `settings.py`. Data stored in a MongoDB database called `yt_db` with collections `VIDEOS`, `COMMENTS` and `AUTHORS` along with a small collection counting number of videos matching each query for convenience; `QUERIES`.
 
 #Dependencies
 ##Python

@@ -9,6 +9,14 @@ Makes series of API calls to find new videos from
 last 24 hours, in hourly increments. Makes new calls
 to get full information for each video, and makes further
 calls to get all comments and comment authors.
+
+Optional arguments are 
+-q <query>: to find videos matching
+a given word or set of multi-gram
+
+-n <days>: to search back farther than one day
+Note: API behaviour is unstable looking back
+over long periods.
 '''
 import sys,re
 from datetime import date,datetime
