@@ -1,0 +1,179 @@
+{% extends "base.html" %} 
+{% block content %} 
+<head>
+<ul class="nav nav-tabs">
+<li><a href="http://alexrutherford.org:5000/yt/home">Home</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/tag">Tag</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/explore">Explore</a></li>
+<li class="active"><a href="http://alexrutherford.org:5000/yt/totals">Totals</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/about">About</a></li>
+</ul>
+<!-- Navigation bar-->
+<title>Syria YouTube Monitor - Totals</title>
+</head>
+
+<script charset="utf-8" src="http://d3js.org/d3.v3.js"></script>
+
+<style>
+barDiv {
+  font: 10px sans-serif;
+  background-color: steelblue;
+  text-align: right;
+  padding: 3px;
+  margin:5px;
+  color: black;
+ }
+.axis path, .axis line {
+fill: none;
+stroke: #000;
+shape-rendering: crispEdges;
+}
+text{
+fill:black;
+}
+
+
+</style>
+<div id="area1"><h3>Keyword Timeline</h3></div>
+<div id="area2"><h3>Keyword Distribution</h3></div>
+<script>
+	
+
+var data={{data|tojson|safe}}
+var queries={{queries|tojson|safe}}
+var color = d3.scale.category20();
+var queryCounts={{queryCounts|tojson|safe}}
+color.domain(data);
+
+var parseDate = d3.time.format("%Y-%m-%d").parse;
+
+	var xVals=[1,2,3,4];
+	var yVals=[1,4,9,16];
+        var vals=[{'x':1,'y':1},{'x':2,'y':4},{'x':3,'y':9},{'x':4,'y':16}]
+
+var margin = {top: 20, right: 80, bottom: 40, left:70},
+    width = 1000,
+    height = 500;
+    
+var now = new Date() // current date
+var x = d3.time.scale()
+        .domain([parseDate("2014-05-20"), d3.time.day.offset(parseDate("2014-" + (1+now.getMonth()) + "-" + now.getUTCDate()), 1)])
+        .rangeRound([0, width + margin.right]);
+
+var yMax=d3.max(data.map(function(d){return d3.max(d.map(function(e){return JSON.parse(e).value;}));}));
+
+var y=d3.scale.linear().domain([0,yMax]).range([height - margin.top - margin.bottom, 0]);
+
+var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient('bottom')
+            .ticks(d3.time.days, 3)
+            .tickFormat(d3.time.format('%d %b'))
+            .tickSize(0)
+            .tickPadding(8);
+
+var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient('left')
+            .tickPadding(8);
+	    
+var line = d3.svg.line()
+      .x(function(d) { return x(parseDate(JSON.parse(d).date)); })
+      .y(function(d) { return y(JSON.parse(d).value); }).interpolate('basis');
+
+var chart1 = d3.select("#area1")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")").style('fill','blue');
+
+
+var tooltip = d3.select("body")
+       .append("div")
+       .style("position", "absolute")
+       .style('padding',' 10px')
+	    .style("z-index", "10")
+	    .style('background-color','gray')
+	    .style("visibility", "hidden")
+            .text("a simple tooltip").style('font-size','20px');
+
+var lines=chart1.selectAll(".line")
+          .data(data)
+	  .enter().append("path")
+	  .attr("class", "line")
+	  .attr("d", line)
+          .attr('fill','none')
+    	  .attr('stroke-width',2)
+          .attr('stroke',function(d){return color(d);})
+.on('mouseover',function(d){tooltip.style("visibility", "visible");tooltip.text(' '+queries[data.indexOf(d)]+' '); d3.select(this).transition().attr('stroke-width',4)})
+		.on('mouseout',function(d){tooltip.style('visibility','hidden');d3.select(this).transition().attr('stroke-width',2)})
+		.on("mousemove", function(){return tooltip.style("top",(d3.event.pageY-10)+"px").style("left",(d3.event.pageX+10)+"px");});
+		
+	chart1.selectAll("text")
+		.data(queries).enter().append("text")
+		.text(function(d){return d;})
+		.attr('y',function(d){return y(JSON.parse(data[queries.indexOf(d)][data[queries.indexOf(d)].length-1]).value);})
+		.attr('x',function(d){return x(parseDate(JSON.parse(data[queries.indexOf(d)][data[queries.indexOf(d)].length-1]).date));})
+		.attr('fill','none')
+		.attr('stroke',function(d){return color(data[queries.indexOf(d)])})
+		.attr('shape-rendering','crispEdges').on('mouseover',function(d){d3.select(this).transition().style('stroke','gray')}).on('mouseout',function(d){d3.select(this).transition().style('stroke',function(d){return color(data[queries.indexOf(d)])})});
+
+
+chart1.append('g')
+.attr('class', 'x axis')
+.attr('transform', 'translate(0, ' + (height - margin.top - margin.bottom) + ')')
+.call(xAxis);
+
+chart1.append('g')
+.attr('class', 'y axis')
+.call(yAxis);
+
+<!--SECOND CHART-->
+//////////////////////////////////////////////////////////////////////////////////////
+var chart2 = d3.select("#area2")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var barHeight=(height-margin.top-margin.bottom)/queryCounts.length;
+
+//color.domain(queryCounts);
+
+var bars=chart2.selectAll("g")
+	      .data(queryCounts)
+	      .enter().append("g")
+              .style("width",function(d){return d+'px';})
+	      .style("height",barHeight)
+	      .attr('transform',function(d,i){return 'translate(0,'+i * barHeight+')';})
+		.style("fill",function(d){return color(data[queryCounts.indexOf(d)]);})
+		.text(function(d){return d;})
+		.text(function(d) { return queries[queryCounts.indexOf(d)]+" - "+d; });
+
+var x2=d3.scale.log().domain([1.,d3.max(queryCounts)]).range([0,width + margin.right]);
+var y2 = d3.scale.ordinal()
+    .domain(queries).range([0,height-margin.top-margin.bottom]);
+
+    bars.append('rect').attr('width',function(d){return x2(d)+'px';}).attr('height',barHeight).on('mouseover',function(d){d3.select(this).transition().style('opacity',0.5)}).on('mouseout',function(d){d3.select(this).transition().style('opacity',1.0)})
+
+bars.append('text').attr('x',10).attr('y', barHeight/2).text(function(d) { return queries[queryCounts.indexOf(d)].replace('+',' ')+" - "+d; }).attr('fill','white')
+
+yAxis = d3.svg.axis()
+        .scale(y2)
+	.orient("left");
+	
+var chart2Format=d3.format(10,'s');
+
+xAxis = d3.svg.axis()
+        .scale(x2)
+	.orient("bottom").ticks(20,",.1s")
+	//.ticks(5,function(d,i){return chart2Format(d);});
+
+
+//chart2.append('g').attr('class','y axis').call(yAxis)
+chart2.append('g').attr('class','x axis').attr('transform', 'translate(0, ' + (height - margin.top - margin.bottom) + ')').call(xAxis).selectAll('text').attr('transform',function(d){return 'rotate(65)'}).attr('transform','translate(0,5)')
+</script>
+
+{% endblock %} 

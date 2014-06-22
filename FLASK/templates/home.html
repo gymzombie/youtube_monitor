@@ -1,0 +1,20 @@
+{% extends "base.html" %} 
+{% block content %}  	
+<head>
+<ul class="nav nav-tabs">
+<li class="active"><a href="http://alexrutherford.org:5000/yt/home">Home</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/tag">Tag</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/explore">Explore</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/totals">Totals</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/about">About</a></li>
+</ul>
+<title>Syria YouTube Monitor - Home</title>
+</head>
+
+<center>
+	{% for v in videos %}
+	{{ v.views }}
+<iframe width="270" height="150" src="//www.youtube-nocookie.com/embed/{{ v.videoId }}" frameborder="0" allowfullscreen></iframe>
+{% endfor %}
+</center>
+{% endblock %}

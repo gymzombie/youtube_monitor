@@ -1,0 +1,47 @@
+{% extends "base.html" %} 
+{% block content %}  	
+<head>
+<ul class="nav nav-tabs">
+<li><a href="http://alexrutherford.org:5000/yt/home">Home</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/tag">Tag</a></li>
+<li class="active"><a href="http://alexrutherford.org:5000/yt/explore">Explore</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/totals">Totals</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/about">About</a></li>
+</ul>
+<title>Syria YouTube Monitor - Explore</title>
+</head>
+<center>
+	<!--
+	<div class="btn-group">
+	<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+	All Keywords <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+	{% for query in queries %}
+	<li><a href="#">{{query}}</a></li>
+	{% endfor %}
+	</ul>
+	</div>
+	-->
+	<p>
+	<p>Currently storing {{n[0]}} videos ({{n[3]}} have been removed), {{n[2]}} comments and {{n[1]}} users.</p>
+<p>Below is shown the 10 videos with the most number of views. Videos are updated daily</p>	
+<ul class="list-group">
+	
+	{% for v in videos[0:10] %}
+	<li class="list-group-item">
+	<span class="badge">{{ v.views[-1] }} views</span>
+	<center><span class="label label-default">{{v.query[0]|replace("+"," ") }}</span></center>
+	<p>{{v.title }}</p>
+	{% if v.views|length>1 and v.retrieved|length>1  %}
+	<p>{{v.views[-1]-v.views[-2]}} views in the last {{(((v.retrieved[-1]-v.retrieved[-2]))/60)|int}} minutes</p>
+	{% endif %}
+	<p>Uploaded at {{v.uploaded.strip('.000Z').replace('T',' ') }} by <a href="http://www.youtube.com/user/{{v.authorName}}">{{v.authorName }}</a></p>
+<iframe width="530" height="300" src="//www.youtube-nocookie.com/embed/{{ v.videoId }}" frameborder="0" allowfullscreen></iframe>
+	</li>
+	
+	{% endfor %}
+
+</ul>
+</center>
+{% endblock %}

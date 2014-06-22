@@ -1,0 +1,27 @@
+{% extends "base.html" %} 
+{% block content %} 
+<head>
+<ul class="nav nav-tabs">
+<li><a href="http://alexrutherford.org:5000/yt/home">Home</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/tag">Tag</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/explore">Explore</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/totals">Totals</a></li>
+<li class="active"><a href="http://alexrutherford.org:5000/yt/about">About</a></li>
+</ul>
+<!-- Navigation bar-->
+<title>Syria YouTube Monitor - About</title>
+</head>
+
+<center>
+<div class="well" style='margin-top:20px;margin-left:50px;margin-right:50px;text-align:left'>
+	This is a prototype application for monitoring trending videos related to the Syrian conflict. This for the interested person to see what kind of content is being uploaded on a daily basis, how this relates to current events and to see how popular each piece of content is as well as the kind of discussions happening through comments on the video. This tool does not start with an ideological perspective <i>a priori</i>, rather it is intended to be an informational tool to better document and understand user generated content independently from the origin.
+        <p>
+        <p>
+	From a technological perspective, a daily query is made to the YouTube public API asking for videos uploaded in the previous 24 hours that match a given keyword or phrase. The match may be in the video's title, description or summary. The public information on the uploading user, comments and comment authors are also taken from separate API calls.
+	<p>
+	<p>
+	The web interface allows interaction with the data stored in MongoDB. The pages are served using the Flask library with the PyMongo connector. Animations and charts use jQuery and D3 respectively.
+</div>
+</center>
+{% endblock %}
+
