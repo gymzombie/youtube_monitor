@@ -1,0 +1,111 @@
+{% extends "base.html" %} 
+{% block content %}  	
+<head>
+<ul class="nav nav-tabs">
+<li ><a href="http://alexrutherford.org:5000/yt/home">Home</a></li>
+<li class='active'><a href="http://alexrutherford.org:5000/yt/tag">Tag</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/explore">Explore</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/totals">Totals</a></li>
+<li><a href="http://alexrutherford.org:5000/yt/about">About</a></li>
+</ul>
+<title>Syria YouTube Monitor - Home</title>
+</head>
+
+<script>
+var xmlHttp = new XMLHttpRequest(); //returns a XMLHttpRequest object
+
+var videoLookUp={};
+
+function updateThisDiv(id)
+{
+
+	$.getJSON("http://alexrutherford.org:5000/yt/random",
+	function(result,stat,xhrObject){
+	var newVideo=JSON.parse(xhrObject.responseText);
+	$('#'+id).animate({opacity: 0.0}, 2000, function(){
+
+	document.getElementById(id).srcdoc='<center>'+newVideo.query+'</center><iframe width="270" height="150" src="//www.youtube-nocookie.com/embed/'+newVideo.videoId+'" frameborder="0" allowfullscreen></iframe>' 
+		console.log('UPADATING '+'#title_'+id)
+
+		$('#'+id).animate({opacity: 1.0}, 2000) 
+		$('#button_'+id).prop('disabled',false)
+		$('#button_not_'+id).prop('disabled',false)
+		});
+	$('#title_'+id).animate({opacity: 0.0}, 2000, function(){$('#title_'+id).text(newVideo.title.replace('+',' '))
+		$('#time_'+id).animate({opacity: 1.0}, 2000)})
+	$('#time_'+id).animate({opacity: 0.0}, 2000, function(){$('#time_'+id).text(newVideo.uploaded.split('T')[0])		
+		$('#title_'+id).animate({opacity: 1.0}, 2000)})
+	$('#description_'+id).animate({opacity: 0.0}, 2000, function(){$('#description_'+id).text(newVideo.description)		
+		$('#description_'+id).animate({opacity: 1.0}, 2000)})
+    console.log('VIDEO '+newVideo.videoId)
+    console.log('//www.youtube-nocookie.com/embed/'+newVideo.videoId)
+//    document.getElementById(id).src = "//www.youtube-nocookie.com/embed/"+ JSON.parse(xhrObject.responseText).videoId
+    console.log(document.getElementById(id).src)
+    //+ "?controls=0&modestbranding=1&showinfo=0"
+    console.log('UPDATING LOOKUP '+JSON.parse(xhrObject.responseText).videoId+' '+id)
+	videoLookUp['button_'+id]=JSON.parse(xhrObject.responseText).videoId
+	videoLookUp['button_not_'+id]=JSON.parse(xhrObject.responseText).videoId
+	});
+}
+
+function incrementRelevant(id) { 
+var mimeType = "text/plain";  
+xmlHttp.open('PUT',"http://alexrutherford.org:5000/yt/relevant/"+videoLookUp[id], true);  // true : asynchrone false: synchrone
+xmlHttp.setRequestHeader('Content-Type', mimeType);  
+xmlHttp.send(null);	
+$('#'+id).prop('disabled',true)
+$('#'+id.replace('_','_not_')).prop('disabled',true)
+updateThisDiv(id.split('button_')[1]);
+	 }
+	 
+function decrementRelevant(id) { 
+var mimeType = "text/plain";  
+xmlHttp.open('PUT',"http://alexrutherford.org:5000/yt/notrelevant/"+videoLookUp[id], true);  // true : asynchrone false: synchrone
+xmlHttp.setRequestHeader('Content-Type', mimeType);  
+xmlHttp.send(null);	
+$('#'+id).prop('disabled',true)
+$('#'+id.replace('_not_','_')).prop('disabled',true)
+updateThisDiv(id.split('button_not_')[1])
+	 }
+
+{% for v in videos[0:12] %}
+videoLookUp['button_{{loop.index0}}']='{{v.videoId}}'
+videoLookUp['button_not_{{loop.index0}}']='{{v.videoId}}'
+{% endfor %}
+</script>
+
+<center>
+{% for v in videos[0:12] %}
+<!-- <g>  -->
+	<iframe id={{loop.index0}} srcdoc='<center>{{v.query[0]|replace("+"," ")}}</center><iframe width="270" height="150" src="//www.youtube-nocookie.com/embed/{{ v.videoId }}?controls=0&modestbranding=1&showinfo=0" frameborder="0" allowfullscreen></iframe>' width='300' height='200' frameborder=0>
+	</iframe>
+	<p id='title_{{loop.index0}}'>
+	{{v.title}}
+    </p>
+    <p id='description_{{loop.index0}}'>
+	{{v.description}}
+    </p>
+	<p id='time_{{loop.index0}}'>
+	{{v.uploaded.split('T')[0]}}
+	</p>
+	<table class='table' style='width:50px' id='table_{{loop.index0}}'>
+	<tr>
+		<td><FORM method="POST" name="ajax" action=""><INPUT type="BUTTON" class="btn btn-primary" value="+1 Relevant" ONCLICK="incrementRelevant(this.id)" id='button_{{loop.index0}}' src=></FORM></td>
+		<td><FORM method="POST" name="ajax" action=""><INPUT type="BUTTON" value="-1 Relevant" class="btn btn-danger" ONCLICK="decrementRelevant(this.id)" id='button_not_{{loop.index0}}'></FORM></td>
+</tr>
+</table>
+<!--</g> -->
+{% endfor %}
+</center>
+<script>	
+
+max=10
+min=0
+
+videoMax={{videos|length}}-1
+videoMin=0
+
+
+
+</script>
+{% endblock %}
