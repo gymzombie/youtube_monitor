@@ -16,6 +16,8 @@ Requires a YouTube API key to be stored in `settings.py`. Data stored in a Mongo
 * [requests](http://docs.python-requests.org/en/latest/)
 * [Flask](http://flask.pocoo.org/)
 * [PyMongo](http://api.mongodb.org/python/2.7rc0/)
+* [Langid](https://github.com/saffsd/langid.py)
+* [Arabic NLP repository](https://github.com/alexrutherford/arabic_nlp)
 
 ##Other
 * [MongoDB](http://www.mongodb.org/)
