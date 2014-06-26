@@ -1,91 +1,42 @@
-'''Script to compile all text associated with a video together.
-Includes video title, summary and all comments. Once this text is cleaned
-and normalised, NLP can be applied. Text for each video commited to database'''
-
+import gensim
 import sys,re
-from datetime import date,datetime
-import datetime,time
-import requests
-import utils
-from settings import *
-import langid
-from regex import *
+
 from pymongo import MongoClient
-from normalise_file import getWordLists
 client = MongoClient()
 db=client.yt_db
 # Set up mongodb client
 
-n=0
+############
+class documents(object):
+############
+#    def __init__(self):
+#        return self
 
-targetLangs=['ar','fa']
+    def __iter__(self):
+        for d in db.TOPIC_STRINGS.find({},{'_id':0,'doc':1}):
+            yield d['doc'].split(' ')
 
-numberDateRe='([0-9/]+)'
+############
+def getWord2Vec():
+############
+    docs=documents()
+    model = gensim.models.Word2Vec(docs,min_count=1)
 
-allRe='|'.join([harakatRe,hahRe,tuhaRe,alRe,hahRe,wawRe,alifMaksourRe,alifRe,hashRe,underscoreRe,puncRe,numberDateRe])
+    return model
 
-stopWords,negationWords,exemptWords,posEmojis,negEmojis=getWordLists()
-# Get list of reference words
-
-####################
-def clean(content):
-####################
-# Add language testing here and removal of punctuation etc
-# taken from normalisatino code
-    global stopwords
-    reject=True
-
-    for l in langid.rank(content):
-        if l[0] in targetLangs and l[1]>0.7:
-            reject=False
-    # If content is detected as Arabic/Farsi with reasonable
-    # confidence then consider it
-    if reject:
-        return None
-    else:
-        content=content.split(' ')
-        content=[re.sub(allRe,'',c) for c in content if not c in stopWords]
-        content=' '.join(content)
-        return content
-###########
+############
 def main():
-###########
-#    print allRe
-#    sys.exit(1)
+############
+    model=getWord2Vec()
 
     n=0
+    '''
+    for d in documents:
+        print d
 
-    for v in db.VIDEOS.find({'missing':{'$exists':False}}):
-        print v['videoId']
-
-        nComment=db.COMMENTS.find({'videoId':v['videoId']}).count()
-
-        videoString=''
-
-        try:
-            videoString=videoString+' '+clean(v['title'])
-        except:
-            print '!!! NO TITLE'
-
-        try:
-            print '===>',v['description']
-            videoString=videoString+' '+clean(v['description'])
-        except:
-            print '!!! NO DESCRIPTION'
-        nComments=0            
-        for c in db.COMMENTS.find({'videoId':v['videoId']}):
-
-            try:
-                videoString=videoString+' '+clean(c['content'])
-                nComments+=1
-            except:
-#            print '!!! NO CONTENT'
-                continue
-                # Quite common
         n+=1
-        print videoString,nComments,'COMMENTS'
-        print ''
-        if n==100:break
+        if n==10:sys.exit(1)
+    '''
 
 if __name__=='__main__':
     main()
