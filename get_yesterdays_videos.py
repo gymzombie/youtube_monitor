@@ -18,12 +18,18 @@ a given word or set of multi-gram
 Note: API behaviour is unstable looking back
 over long periods.
 '''
-import sys,re
+import sys,re,random
 from datetime import date,datetime
 import datetime,time
 import requests
 import utils
 from settings import *
+
+KEY=random.choice([KEY1,KEY2,KEY3])
+
+hourChoice=datetime.datetime.now().hour%3
+KEY=[KEY1,KEY2,KEY3][hourChoice]
+KEY='AIzaSyC5w8mm2IByA5fI9vOEPWQfa2FmF-_0WWs'
 
 from pymongo import MongoClient
 client = MongoClient()
@@ -254,7 +260,7 @@ def putCommentsInMongo(v):
             	errorSkip=True
             	break
             elif re.search(r'too_many_recent_calls|Internal Server Error',commentsRaw.text):
-            	print 'API ERROR SLEEPING...\n',commentsRaw.text
+            	print 'API ERROR SLEEPING...\n',commentsRaw.text,commentsRaw.status_code
                 time.sleep(60)
             	nFail+=1
             	if nFail==10:
@@ -262,8 +268,8 @@ def putCommentsInMongo(v):
                     break
             else:
                 print 'UNKNOWN ERROR'
-                print commentsRaw.text
                 print commentsRaw.status_code
+                print commentsRaw.text
                 sys.exit(1)
         if not errorSkip:
             print 'ASSUMED GOT JSON OK...'
@@ -318,12 +324,25 @@ def getUsefulParts(videoData,vid):
     '''Cleans and simplifies JSON object representing
     video data returned from API.'''
     global QUERY
+
     returnData={'videoId':vid,'retrieved':[int(time.time())],'query':[QUERY]}
   ## i.e. watch at https://www.youtube.com/watch?v=<vid>
     try:
         returnData['category']=videoData[u'entry'][u'category'][1][u'label']
     except:
         print '\tNo category'
+    try:
+        returnData['description']=videoData[u'entry'][u'media$group']['media$description']['$t']
+#        print returnData['description']
+#        time.sleep(100)
+    except:
+        print '\tNo description'
+        print videoData.keys()
+        print videoData[u'entry'].keys()
+        print videoData[u'entry'][u'media$group'].keys()
+        print videoData[u'entry'][u'media$group']['media$description'].keys()
+        print videoData[u'entry'][u'media$group']['media$description']['$t']
+        time.sleep(100)
 
     try:
         returnData['views']=[int(videoData[u'entry'][u'yt$statistics'][u'viewCount'])]
@@ -384,7 +403,7 @@ def getVideoData(vid):
     while not d.status_code==200:
         print d.text
     
-        if re.search(r'too_many_recent_calls|ServiceUnavailableException',d.text):
+        if re.search(r'too_many_recent_calls',d.text):
             print 'API THRASHED. SLEEPING...'
             time.sleep(60)
             print 'RETRYING'
@@ -392,9 +411,9 @@ def getVideoData(vid):
             print 'GOT CODE',d.status_code
             nTries+=1
 
-            if nTries==10 or re.search('Video not found|Private video',d.text):
-                print 'GIVING UP'
-                return {'videoId':vid,'missing':[int(time.time())]}
+        if nTries==10 or re.search('Video not found|Private video|ServiceUnavailableException',d.text):
+            print 'GIVING UP',vid
+            return {'videoId':vid,'missing':[int(time.time())]}
     return d.json()
 ###########
 def main():
