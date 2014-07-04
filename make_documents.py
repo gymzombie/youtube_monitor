@@ -1,8 +1,9 @@
+# coding: utf-8
 '''Script to compile all text associated with a video together.
 Includes video title, summary and all comments. Once this text is cleaned
 and normalised, NLP can be applied. Text for each video commited to database'''
 
-import sys,re
+import sys,re,traceback
 from datetime import date,datetime
 import datetime,time
 import requests
@@ -34,6 +35,7 @@ def clean(content):
 # taken from normalisatino code
     global stopwords
     reject=True
+    match=False
 
     for l in langid.rank(content):
         if l[0] in targetLangs and l[1]>0.7:
@@ -45,7 +47,13 @@ def clean(content):
     else:
         content=content.split(' ')
         content=[re.sub(allRe,'',c) for c in content if not c in stopWords]
-        content=[re.sub(hahaRe,u'ههه') for c in stopWords]
+#        if any([re.match(hahaRe,c) for c in content]):
+#            match=True
+#            print '\t',' '.join(content)
+        content=[re.sub(hahaRe,u'هه',c) for c in content]
+        if match:
+            print '\t',' '.join(content)
+            sys.exit(1)
         content=' '.join(content)
         return content
 ###########
@@ -60,7 +68,7 @@ def main():
         n+=1
 
         if (n+1)%100==0:print 'VIDEO',n
-#        print v['videoId']
+#        print v['videoId'],n
 
         nComment=db.COMMENTS.find({'videoId':v['videoId']}).count()
 
@@ -69,6 +77,7 @@ def main():
         try:
             videoString=videoString+' '+clean(v['title'])
         except:
+#            print traceback.print_exc()
 #            print '!!! NO TITLE'
             continue
 
@@ -85,12 +94,12 @@ def main():
                 videoString=videoString+' '+clean(c['content'])
                 nComments+=1
             except:
-#            print '!!! NO CONTENT'
+#                print '!!! NO CONTENT'
                 continue
                 # Quite common
 #        print videoString,nComments,'COMMENTS'
 #        print ''
-#        if n==100:break
+        if n==100:break
         db.TOPIC_STRINGS.insert({'videoId':v['videoId'],'doc':videoString,'nComments':nComments})
 if __name__=='__main__':
     main()

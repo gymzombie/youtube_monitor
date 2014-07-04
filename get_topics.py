@@ -7,6 +7,14 @@ db=client.yt_db
 # Set up mongodb client
 
 ############
+class dummyCorpus(object):
+############
+    def __iter__(self):
+        for d in db.TOPIC_STRINGS.find({},{'_id':0,'doc':1}):
+            yield gensim.corpora.dictionary.doc2bow(d['doc'].split(' '))
+
+
+############
 class documents(object):
 ############
 #    def __init__(self):
@@ -27,7 +35,7 @@ def getWord2Vec():
 ############
 def main():
 ############
-    model=getWord2Vec()
+#    model=getWord2Vec()
 
     n=0
     '''
