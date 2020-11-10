@@ -21,11 +21,11 @@ restartId=-999
 if '-r' in sys.argv:
     index=sys.argv.index('-r')
     restartId=sys.argv[index+1]
-    print 'RESTART AT',restartId
+    print('RESTART AT',restartId)
     time.sleep(3)
   
 for v in db.VIDEOS.find({}).sort('retrieved.-1',1):
-    if n%500==0:print n,'...'
+    if n%500==0:print(n,'...')
 
     skip=False
 
@@ -33,10 +33,10 @@ for v in db.VIDEOS.find({}).sort('retrieved.-1',1):
 
       if v[u'videoId']==restartId:
         restartId=-999
-        print '...RESTARTING'
+        print('...RESTARTING')
     else:
-        print '\tKEY ERROR'
-        print '\t',v.keys()
+        print('\tKEY ERROR')
+        print('\t',v.keys())
 #    sys.exit(1)
         skip=False
     
@@ -46,40 +46,40 @@ for v in db.VIDEOS.find({}).sort('retrieved.-1',1):
         d=requests.get(requestUrl)
       
         while re.search(r'too_many_recent_calls|ServiceUnavailableException',d.text):
-            print 'API THRASHED OR UNAVAILABLE, SLEEPING...'
+            print('API THRASHED OR UNAVAILABLE, SLEEPING...')
             time.sleep(60)
             requestUrl='https://gdata.youtube.com/feeds/api/videos/'+v[u'videoId']+'?v=2&alt=json'
             d=requests.get(requestUrl)
    
         if re.search(r'Private video|ResourceNotFoundException|User authentication required',d.text) or d.status_code==404:
-            print v.keys()
+            print(v.keys())
 #      db.VIDEOS.update({u'id':v[u'videoId']},{'$addToSet':{u'missing':time.time()}})
             if not 'missing' in v.keys():
                 db.VIDEOS.update({u'videoId':v[u'videoId']},{'$set':{u'missing':time.time()}},upsert=False)
                 db.VIDEOS.update({u'videoId':v[u'videoId']},{'$set':{u'missingReason':[d.text,d.status_code]}},upsert=False)
 
-            print 'MISSING',v['videoId']
-            print d.text
+            print('MISSING',v['videoId'])
+            print(d.text)
             time.sleep(5)
             # This could mean private or account closed
         elif not d.status_code==200:
-            print v[u'id']['videoId']
-            print d.status_code,d.text
+            print(v[u'id']['videoId'])
+            print(d.status_code,d.text)
             sys.exit(1)
         else:
-            print 'STILL THERE...',v[u'retrieved'][-1]
+            print('STILL THERE...',v[u'retrieved'][-1])
             if not type(v[u'retrieved'])==list:
-                print 'NOT LIST'
+                print('NOT LIST')
                 sys.exit(1)
         try:
             nViews=int(d.json()['entry']['yt$statistics']['viewCount'])
 #        nFavs=int(d.json()['entry']['yt$statistics']['favouriteCount'])
-            print nViews,v['videoId']
+            print(nViews,v['videoId'])
             db.VIDEOS.update({u"videoId":v[u"videoId"]},{"$addToSet":{u"views":nViews}})
 #        db.VIDEOS.update({u"videoId":v[u"videoId"]},{"$addToSet":{u"favourites":nFavs}})
         
         except:
-	        print 'NO VIEW COUNT TO UPDATE'
+	        print('NO VIEW COUNT TO UPDATE')
             db.VIDEOS.update({u"videoId":v[u"videoId"]},{"$addToSet":{u"retrieved":time.time()}})
-            print 'UPDATING',v['videoId']
+            print('UPDATING',v['videoId'])
     n+=1
