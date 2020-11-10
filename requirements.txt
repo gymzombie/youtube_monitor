@@ -1,0 +1,8 @@
+# local package
+-e .
+gensim
+re
+os
+dotenv
+pandas
+googleapiclient.discovery
