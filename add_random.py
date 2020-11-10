@@ -22,10 +22,10 @@ else:
     for i in range(10):
         coinToss1=random.random()
         coinToss2=random.random()
-        print coinToss1,coinToss2
+        print(coinToss1,coinToss2)
         if coinToss1>coinToss2:
             q=db.VIDEOS.find({'randId':{'$gt':coinToss2,'$lt':coinToss1}}).sort([('randId',1)]).limit(1)
         else:
             q=db.VIDEOS.find({'randId':{'$gt':coinToss1,'$lt':coinToss2}}).sort([('randId',1)]).limit(1)
         for v in q:
-            print v['videoId']
+            print(v['videoId'])
