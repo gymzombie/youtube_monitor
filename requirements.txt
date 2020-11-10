@@ -6,3 +6,13 @@ os
 dotenv
 pandas
 googleapiclient.discovery
+sys
+traceback
+pymongo
+time
+operator
+requests
+collections
+datetime
+utils
+langid
