@@ -8,21 +8,17 @@ client = MongoClient()
 db=client.yt_db
 
 if True:
-
     q=db.VIDEOS.find()
-
     n=0
-
     for v in q:
-#  print v,v.keys()
-#  print v['_id']
+    #  print v,v.keys()
+    #  print v['_id']
         db.VIDEOS.update({'_id':v['_id']},{'$set':{'randId':random.random()}})
         if n%1000==0:
-            print n
+            print(n)
         n+=1
-
 else:
-# Quick test of random selection
+    # Quick test of random selection
     for i in range(10):
         coinToss1=random.random()
         coinToss2=random.random()
