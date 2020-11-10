@@ -1,11 +1,11 @@
-'''Script to be called periodically to check that videos
+"""Script to be called periodically to check that videos
 are still available. Cycles through videos currently in DB
 sorted by the last time they were accessed. If video still exists
 record is added of time of last checking; else first time of being
 found missing is recorded.
 
 If script is interrupted, can be restarted from a particular video
-with argument -r <videoId> '''
+with argument -r <videoId> """
 
 import re
 import requests
@@ -15,10 +15,8 @@ from pymongo import MongoClient
 
 client = MongoClient()
 db = client.yt_db
-# Set up mongodb client
 
 n = 0
-
 restartId = -999
 
 if '-r' in sys.argv:
@@ -30,25 +28,19 @@ if '-r' in sys.argv:
 for v in db.VIDEOS.find({}).sort('retrieved.-1', 1):
     if n % 500 == 0:
         print(n, '...')
-
     skip = False
-
     if u'videoId' in v.keys():
-
         if v[u'videoId'] == restartId:
             restartId = -999
             print('...RESTARTING')
     else:
         print('\tKEY ERROR')
         print('\t', v.keys())
-        #    sys.exit(1)
         skip = False
 
     if restartId == -999 or not skip:
-
         requestUrl = 'https://gdata.youtube.com/feeds/api/videos/' + v[u'videoId'] + '?v=2&alt=json'
         d = requests.get(requestUrl)
-
         while re.search(r'too_many_recent_calls|ServiceUnavailableException', d.text):
             print('API THRASHED OR UNAVAILABLE, SLEEPING...')
             time.sleep(60)
